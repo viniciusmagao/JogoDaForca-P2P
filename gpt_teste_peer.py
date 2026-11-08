@@ -1,5 +1,33 @@
 import socket
 from peer import enviar_mensagem, receber_mensagem
+from peer import falar_hello, validar_hello, falar_hello_ok
+
+"""
+Teste pra verifiacar a validação da mensagem HELLO
+
+def main():
+    mensagem = falar_hello("bob@CIC")
+
+    if validar_hello(mensagem):
+        print("Mensagem HELLO válida!")
+    else:
+        print("Mensagem HELLO inválida!")
+
+    # Testando uma mensagem com TTL incorreto
+    mensagem["ttl"] = 2
+
+    if validar_hello(mensagem):
+        print("Mensagem HELLO válida!")
+    else:
+        print("Mensagem HELLO inválida!")
+
+
+if __name__ == "__main__":
+    main()
+"""
+"""
+Teste pra validar comunicação entre dois peers: 
+    envio e recebimento de mensagens
 
 def main():
     # Cria dois sockets conectados entre si
@@ -42,3 +70,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""

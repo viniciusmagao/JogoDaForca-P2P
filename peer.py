@@ -17,8 +17,9 @@ def gerar_msg_id():
 
     return str(uuid.uuid4())
 
+#============================================================
 #------------------------------------------------------------
-# HELLO
+# HELLO: MSG
 def falar_hello(peer_id):
     """
     Fala HELLO iniciando a conexao TCP
@@ -36,8 +37,82 @@ def falar_hello(peer_id):
     return mensagem
 
 #------------------------------------------------------------
-# HELLO_OK
-def responder_hello_ok(msg_id, peer_id):
+# HELLO: VALIDACAO
+def validar_hello(mensagem):
+    # Verifica se todos os campos obrigatórios existem
+
+    campos_obrigatorios = [
+        "type",
+        "msg_id",
+        "peer_id",
+        "version",
+        "features",
+        "ttl"
+    ]
+
+    # Se tiver algum campo faltando já retorna false
+    for campo in campos_obrigatorios:
+        if campo not in mensagem:
+            return False
+
+    # Verifica os tipos dos campos
+    if not isinstance(mensagem["msg_id"], str):
+        return False
+
+    if not isinstance(mensagem["peer_id"], str):
+        return False
+
+    if not isinstance(mensagem["version"], str):
+        return False
+
+    # Verifica se é uma lista
+    if not isinstance(mensagem["features"], list):
+        return False
+
+    # Verifica cada elemento da lista
+    if not all(isinstance(feature, str) for feature in mensagem["features"]):
+        return False
+
+    if not isinstance(mensagem["ttl"], int) or isinstance(mensagem["ttl"], bool):
+        return False
+
+    # Verifica os valores exigidos pelo protocolo
+    if mensagem["version"] != VERSAO_PROTOCOLO:
+        return False
+
+    if "hangman" not in mensagem["features"]:
+        return False
+
+    if mensagem["ttl"] != TTL:
+        return False
+
+    return True
+
+#------------------------------------------------------------
+# HELLO: RESPONDENDO
+def responder_hello(conexao):
+    mensagem = receber_mensagem(conexao)
+
+    if not validar_hello(mensagem):
+        error_msg("hello_invalido")
+        return False
+
+    print(f"HELLO recebido de {mensagem["peer_id"]}")
+
+    resposta = falar_hello_ok(
+        mensagem["msg_id"],
+        "alice@CIC"
+    )
+
+    enviar_mensagem(conexao, resposta)
+
+    print("HELLO_OK enviado!")
+
+    return True
+    
+#------------------------------------------------------------
+# HELLO_OK: MSG
+def falar_hello_ok(msg_id, peer_id):
     """
     Enviar um HELLO_OK, em resposta ao HELLO
     O msg_id deve ser o mesmo recebido no HELLO
@@ -54,6 +129,7 @@ def responder_hello_ok(msg_id, peer_id):
 
     return mensagem
 
+#============================================================
 #------------------------------------------------------------
 # ENVIAR MENSAGEM
 def enviar_mensagem(conexao, mensagem):
@@ -106,6 +182,7 @@ def receber_mensagem(conexao):
 
     return mensagem
 
+#============================================================
 #------------------------------------------------------------
 # INICIAR SERVIDOR
 def iniciar_servidor(porta, host="127.0.0.1"):
@@ -115,3 +192,33 @@ def iniciar_servidor(porta, host="127.0.0.1"):
 
     servidor.bind((host, porta))
     servidor.listen()
+
+    print(f"Servidor aguardando conexões em {host}:{porta}")
+
+    return servidor
+
+#------------------------------------------------------------
+# ACEITAR CONEXAO
+def aceitar_conexao(servidor):
+    # O método accept retorna 2 valores
+    conexao, endereco = servidor.accept()
+
+    print(f"Conexão recebida de {endereco}")
+
+    return conexao
+
+#------------------------------------------------------------
+# CONECTAR PEER
+def conectar_peer(host, porta):
+    # AF_INET diz pra usar IPv4
+    conexao = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        conexao.connect((host, porta))
+        print(f"Conectado ao peer {host}:{porta}")
+
+        return conexao
+    
+    except Exception:
+        conexao.close()
+        raise

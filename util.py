@@ -100,6 +100,8 @@ def error_msg(tipo):
             raise ConnectionError("Conexao encerrada pelo outro peer.")
         case "erro_dict":
             print("A mensagem recebida deve ser um objeto JSON.")
+        case "hello_invalido":
+            print("Mensagem HELLO inválida!")
 
 def valida_campo(campo, tipo):
 
